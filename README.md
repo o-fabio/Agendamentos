@@ -1,37 +1,44 @@
-# Agendamentos_
+# Sistema de Agendamento de Consultas
 
-This template should help get you started developing with Vue 3 in Vite.
+## 📌 Sobre o Projeto
 
-## Recommended IDE Setup
+Este projeto é um **sistema de agendamento de consultas** desenvolvido para um médico. O sistema permite que pacientes se cadastrem, façam login e, futuramente, realizem agendamentos de consultas.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 🚀 Tecnologias Utilizadas
 
-## Type Support for `.vue` Imports in TS
+- **Frontend:** Vue.js + Vite
+- **Backend e Banco de Dados:** Firebase (Authentication + Firestore)
+- **Gerenciamento de Estado:** VueUse
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## 🏗️ Funcionalidades Desenvolvidas
 
-## Customize configuration
+### ✅ Cadastro e Login
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- Autenticação de usuários usando Firebase Authentication.
+- Persistência da sessão no navegador até o usuário sair ou após 1 hora.
+- Coleta de informações adicionais no cadastro, incluindo:
+  - Nome
+  - CPF
+  - Data de nascimento
+  - Telefones de contato
+  - CEP (com preenchimento automático via API)
+  - Número e complemento do endereço (opcionais)
+- Salvamento dos dados dos usuários na coleção `users` do Firestore.
 
-## Project Setup
+## 🔜 Próximas Entregas
 
-```sh
-npm install
-```
+### 📌 2ª Sprint - Painel de Gestão
 
-### Compile and Hot-Reload for Development
+- Criar um painel onde a secretária pode:
+  - **Visualizar, filtrar e gerenciar agendamentos**.
+  - **Cadastrar agendamentos manualmente** para pacientes que ligam ou comparecem presencialmente.
+  - **Definir e ajustar dias/horários disponíveis** para o médico.
 
-```sh
-npm run dev
-```
+### 📌 3ª Sprint - Agendamento e Consulta de Agendamentos
 
-### Type-Check, Compile and Minify for Production
+- Implementar a funcionalidade de **agendamento de consultas** para pacientes cadastrados.
+- Criar uma tela para **visualização de agendamentos passados e futuros**.
 
-```sh
-npm run build
-```
-<!-- Explique sobre o projeto e cada componente -->
-# App.vue
+### 📌 4ª Sprint - Reagendamento e Cancelamento
 
-App.vue é o componente principal do projeto. Ele renderiza o menu de navegação e o conteúdo das rotas filhas.
+- Permitir que pacientes possam **alterar ou cancelar suas consultas** diretamente pelo sistema.
