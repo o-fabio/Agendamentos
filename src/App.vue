@@ -1,96 +1,86 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-import { onMounted } from "vue";
-import { db } from "./firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { ref, onMounted, watch } from "vue";
+import { useStorage } from "@vueuse/core";
+import { auth, db } from "./firebase";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { useRouter } from "vue-router";
+import { doc, getDoc } from "firebase/firestore";
 
-onMounted(async () => {
-  const querySnapshot = await getDocs(collection(db, "test"));
-  querySnapshot.forEach((doc) => {
-    console.log(doc.id, " => ", doc.data());
+const router = useRouter();
+const user = useStorage<User | null>("user-session", null, localStorage);
+const userInfo = ref<IUserInfo>({
+  birth: "",
+  cep: "",
+  cpf: "",
+  name: "",
+  phone1: "",
+  phone2: "",
+  email: "",
+});
+const sessionStartTime = useStorage("session-start", Date.now(), localStorage);
+
+onMounted(() => {
+  onAuthStateChanged(auth, async (currentUser) => {
+    if (currentUser) {
+      userInfo.value = (await getDoc(doc(db, "users", currentUser.uid))).data() as IUserInfo;
+      user.value = currentUser;
+      sessionStartTime.value = Date.now();
+    } else {
+      user.value = null;
+      sessionStartTime.value = null;
+    }
   });
 });
+
+// Verifica se a sessão expirou a cada minuto
+setInterval(() => {
+  if (user.value && sessionStartTime.value) {
+    const elapsedTime = Date.now() - sessionStartTime.value;
+    if (elapsedTime > 60 * 60 * 1000) { // 1 hora
+      logout();
+    }
+  }
+}, 60000);
+
+const logout = async () => {
+  await signOut(auth);
+  user.value = null;
+  sessionStartTime.value = null;
+  router.push("/");
+};
 </script>
 
-<template>  
-  <h1>Teste Firebase</h1>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+<template>
+  <div class="container">
+    <nav v-if="user">
+      <h1>👋 Olá, {{ userInfo.name }}</h1>
+      <button @click="logout">Sair</button>
+    </nav>
+    <router-view :userInfo="userInfo" />
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #4caf50;
+  color: white;
 }
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+button {
+  background: rgb(255, 62, 62);
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 10px;
 }
 </style>

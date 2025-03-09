@@ -31,3 +31,7 @@ npm run dev
 ```sh
 npm run build
 ```
+<!-- Explique sobre o projeto e cada componente -->
+# App.vue
+
+App.vue é o componente principal do projeto. Ele renderiza o menu de navegação e o conteúdo das rotas filhas.

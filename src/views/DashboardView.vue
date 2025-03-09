@@ -1,29 +1,30 @@
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
-import { auth } from "../firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { useRouter } from "vue-router";
+import { doc, getDoc } from "firebase/firestore";
+import TheWelcome from "@/components/TheWelcome.vue";
 
-const user = ref(null);
+
+const props = defineProps<{ userInfo: IUserInfo }>();
+const userAuth = ref<User | null>(null);
+
 const router = useRouter();
 
 onMounted(() => {
-  onAuthStateChanged(auth, (currentUser) => {
-    user.value = currentUser;
+  onAuthStateChanged(auth, async (currentUser) => {
+    if (!currentUser) return
+    userAuth.value = currentUser;
   });
 });
-
-const logout = async () => {
-  await signOut(auth);
-  router.push("/");
-};
 </script>
 
 <template>
   <div class="dashboard">
-    <h1>Bem-vindo ao sistema!</h1>
-    <p v-if="user">Logado como: {{ user.email }}</p>
-    <button @click="logout">Sair</button>
+    
+    <!-- <p v-if="userAuth">Logado como: {{ userInfo.name }}</p> -->
+    <TheWelcome />
   </div>
 </template>
 
