@@ -8,7 +8,7 @@ Este projeto é um **sistema de agendamento de consultas** desenvolvido para um 
 
 - **Frontend:** Vue.js + Vite
 - **Backend e Banco de Dados:** Firebase (Authentication + Firestore)
-- **Gerenciamento de Estado:** VueUse
+
 
 ## 🏗️ Funcionalidades Desenvolvidas
 
