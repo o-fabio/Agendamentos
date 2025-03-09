@@ -1,9 +1,20 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import { onMounted } from "vue";
+import { db } from "./firebase";
+import { collection, getDocs } from "firebase/firestore";
+
+onMounted(async () => {
+  const querySnapshot = await getDocs(collection(db, "test"));
+  querySnapshot.forEach((doc) => {
+    console.log(doc.id, " => ", doc.data());
+  });
+});
 </script>
 
-<template>
+<template>  
+  <h1>Teste Firebase</h1>
   <header>
     <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
