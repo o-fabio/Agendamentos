@@ -63,6 +63,8 @@ const logout = async () => {
 <style scoped>
 .container {
   width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
   height: 100vh;
   display: flex;
   flex-direction: column;

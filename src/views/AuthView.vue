@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndP
 import { useRouter } from "vue-router";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import axios from "axios";
 
 const email = ref("");
 const password = ref("");
@@ -15,10 +16,16 @@ const userInfo = ref({
   phone1: "",
   phone2: "",
   cep: "",
-})
+  rua: "",
+  numero: "", // Novo campo
+  complemento: "", // Novo campo
+  bairro: "",
+  cidade: "",
+  estado: "",
+});
 const isRegistering = ref(false);
 const errorMessage = ref("");
-const router = useRouter()
+const router = useRouter();
 
 const handleAuth = async () => {
   errorMessage.value = "";
@@ -32,13 +39,18 @@ const handleAuth = async () => {
         phone1: userInfo.value.phone1,
         phone2: userInfo.value.phone2,
         cep: userInfo.value.cep,
-        email: email.value
+        rua: userInfo.value.rua,
+        numero: userInfo.value.numero,
+        complemento: userInfo.value.complemento,
+        bairro: userInfo.value.bairro,
+        cidade: userInfo.value.cidade,
+        estado: userInfo.value.estado,
+        email: email.value,
       });
-      alert("Usuário cadastrado com sucesso!");
-    }
-    else {
+      alert("Usuário cadastrado com sucesso!");
+    } else {
       await signInWithEmailAndPassword(auth, email.value, password.value);
-      router.push("/dashboard")
+      router.push("/dashboard");
     }
   } catch (error: any) {
     alert(error.message);
@@ -46,10 +58,33 @@ const handleAuth = async () => {
   }
 };
 
+const buscarEndereco = async () => {
+  if (userInfo.value.cep.length === 8) {
+    try {
+      const response = await axios.get(`https://viacep.com.br/ws/${userInfo.value.cep}/json/`);
+      if (!response.data.erro) {
+        userInfo.value.rua = response.data.logradouro;
+        userInfo.value.bairro = response.data.bairro;
+        userInfo.value.cidade = response.data.localidade;
+        userInfo.value.estado = response.data.uf;
+      } else {
+        alert("CEP não encontrado!");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+      alert("Erro ao consultar o CEP!");
+    }
+  }
+
+  if (userInfo.value.cep.length !== 8) {
+    alert("CEP inválido!");
+  }
+};
+
 onMounted(() => {
   onAuthStateChanged(auth, (currentUser) => {
     if (currentUser) {
-      router.push("/dashboard")
+      router.push("/dashboard");
     }
   });
 });
@@ -67,7 +102,13 @@ onMounted(() => {
         <input v-model="userInfo.birth" type="date" placeholder="Data de Nascimento" required />
         <input v-model="userInfo.phone1" type="text" placeholder="Telefone 1" required />
         <input v-model="userInfo.phone2" type="text" placeholder="Telefone 2" />
-        <input class="span-2" v-model="userInfo.cep" type="text" placeholder="CEP" required />
+        <input class="span-2" v-model="userInfo.cep" type="text" placeholder="CEP" @blur="buscarEndereco" required />
+        <input class="span-2" v-model="userInfo.rua" type="text" placeholder="Rua" disabled />
+        <input v-model="userInfo.numero" type="text" placeholder="Número" />
+        <input v-model="userInfo.complemento" type="text" placeholder="Complemento" />
+        <input class="span-2" v-model="userInfo.bairro" type="text" placeholder="Bairro" disabled />
+        <input v-model="userInfo.cidade" type="text" placeholder="Cidade" disabled />
+        <input v-model="userInfo.estado" type="text" placeholder="Estado" disabled />
       </template>
     </div>
 
@@ -84,7 +125,7 @@ onMounted(() => {
 .auth-container {
   width: 100%;
   max-width: 400px;
-  margin: auto;
+  margin: 50px auto;
   background-color: #222;
   padding: 20px;
   border-radius: 10px;
@@ -111,6 +152,11 @@ input {
 input:focus {
   outline: none;
   box-shadow: 0px 0px 5px #4caf50;
+}
+
+input:disabled {
+  background-color: #1f1f1f;
+  cursor: not-allowed;
 }
 
 button {
