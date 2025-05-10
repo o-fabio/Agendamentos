@@ -25,6 +25,8 @@ onMounted(() => {
     
     <!-- <p v-if="userAuth">Logado como: {{ userInfo.name }}</p> -->
     <TheWelcome />
+    <Apoitments />
+
   </div>
 </template>
 

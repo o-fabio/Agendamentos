@@ -1,12 +1,6 @@
 <template>
   <div class="welcome-container">
     <p class="happy">Estamos felizes em ter você aqui! 😊</p>
-
-    <div class="construction-box">
-      <h2>🛠️ Página de agendamentos em construção</h2>
-      <p>Nossa equipe está trabalhando para trazer a melhor experiência para você. 🚀</p>
-      <p>Em breve, você poderá marcar suas consultas de forma rápida e fácil! 🏥</p>
-    </div>
   </div>
 </template>
 
