@@ -1,63 +1,105 @@
 <template>
-  <div class="welcome-container">
-    <p class="happy">Estamos felizes em ter você aqui! 😊</p>
+  <div class="conv-card">
+    <div class="card-header">
+      <span class="brand">MED+</span>
+      <span class="title">Convênio</span>
+    </div>
+
+    <div class="card-number">
+      {{ formattedCpf }}
+    </div>
+
+    <div class="card-info">
+      <div class="name">{{ user.name.toUpperCase() }}</div>
+      <div class="company">CLÍNICA EXEMPLO</div>
+    </div>
+
+    <div class="logo"><!-- 
+      <img src="/logo.svg" alt="logo" /> -->
+    </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+const props = defineProps<{
+  user: {
+    name: string,
+    cpf: string
+  }
+}>()
 
+const formattedCpf = `${props.user.cpf.slice(0, 4)} **** **** **`
 </script>
 
 <style scoped>
-.welcome-container {
-  text-align: center;
-  padding: 40px;
-  background-color: #1a1a1a;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-h1 {
-  margin-bottom: 10px;
-}
-
-.construction-box {
-  margin-top: 20px;
+.conv-card {
+  width: 340px;
+  height: 200px;
+  border-radius: 16px;
   padding: 20px;
-  background-color: #333;
-  border-radius: 10px;
-  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.25);
+  background: linear-gradient(to bottom, #008040 50%, #eeeeee 50%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  position: relative;
+  color: #000;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.conv-card:hover {
+  transform: scale(1.02);
 }
 
-h2 {
-  margin-bottom: 10px;
-}
-
-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   color: white;
-  background-color: #4caf50;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
 }
 
-button:hover {
-  background-color: #45a049;
+.brand {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffeb3b;
+  text-shadow: 1px 1px 2px #000;
 }
 
-.happy {
-  margin-bottom: 10px;
-  line-height: 1.5;
-  background-color: rgb(223, 223, 223);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.05);
-  color: black;
+.title {
+  background: #00582f;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.card-number {
+  font-size: 20px;
+  font-family: monospace;
+  letter-spacing: 3px;
+  margin: 20px 0 12px;
+  color: #111;
+}
+
+.card-info .name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.card-info .company {
+  font-size: 14px;
+  color: #444;
+}
+
+.logo {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+}
+.logo img {
+  width: 100%;
+  height: auto;
 }
 </style>

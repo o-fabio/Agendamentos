@@ -8,7 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 const router = useRouter();
 const user = useStorage<User | null>("user-session", null, localStorage);
-const userInfo = ref<IUserInfo>({
+const userInfo = ref<IUserInfo | null>({
   birth: "",
   cep: "",
   cpf: "",
@@ -16,12 +16,24 @@ const userInfo = ref<IUserInfo>({
   phone1: "",
   phone2: "",
   email: "",
+  rua: "",
+  numero: "",
+  complemento: "",
+  bairro: "",
+  cidade: "",
+  estado: ""
 });
 const sessionStartTime = useStorage("session-start", Date.now(), localStorage);
-
+const logout = async () => {
+  await signOut(auth);
+  user.value = null;
+  sessionStartTime.value = null;
+  router.push("/");
+};
 onMounted(() => {
   onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
+      
       userInfo.value = (await getDoc(doc(db, "users", currentUser.uid))).data() as IUserInfo;
       user.value = currentUser;
       sessionStartTime.value = Date.now();
@@ -42,17 +54,12 @@ setInterval(() => {
   }
 }, 60000);
 
-const logout = async () => {
-  await signOut(auth);
-  user.value = null;
-  sessionStartTime.value = null;
-  router.push("/");
-};
+
 </script>
 
 <template>
   <div class="container">
-    <nav v-if="user">
+    <nav v-if="user && userInfo">
       <h1>👋 Olá, {{ userInfo.name }}</h1>
       <button @click="logout">Sair</button>
     </nav>
@@ -63,11 +70,11 @@ const logout = async () => {
 <style scoped>
 .container {
   width: 100vw;
-  overflow-x: hidden;
-  overflow-y: auto;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 50px 1fr;
 }
 
 nav {

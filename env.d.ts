@@ -1,10 +1,16 @@
 /// <reference types="vite/client" />
 interface IUserInfo {
-    birth: string;
-    cep: string;
-    cpf: string;
-    name: string;
-    phone1: string;
-    phone2?: string;
-    email: string
+  name: "",
+  cpf: "",
+  birth: "",
+  phone1: "",
+  phone2?: "",
+  cep: "",
+  rua: "",
+  numero: "",
+  complemento: "",
+  bairro: "",
+  cidade: "",
+  estado: "",
+  email: "",
   }
