@@ -3,25 +3,70 @@ import { ref, onMounted } from "vue";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { useRouter } from "vue-router";
-import { doc, getDoc } from "firebase/firestore";
 import TheWelcome from "../components/TheWelcome.vue";
 import Appointments from "../components/Appointments.vue";
 import New from "@/components/New.vue";
+import { query, collection, getDocs, collectionGroup } from "firebase/firestore";
 
 
 const props = defineProps<{ userInfo: IUserInfo }>();
 const userAuth = ref<User | null>(null);
+const agendamentos = ref<Agendamento[]>([]);
+
+const filtroNome = ref('')
+const filtroData = ref('')
+
+const getAtendimentos = async () => {
+  agendamentos.value = []
+  try {
+    // Supondo que o nome da subcoleção dentro de joao-cardilogia e ana-maria-dermatologista
+    // seja 'detalhesAgenda'. Substitua por o nome real da sua subcoleção.
+    const horarios = [
+      '08:00', '08:30', '09:00', '09:30', '10:00',
+      '10:30', '11:00', '11:30',
+      '13:30', '14:00', '14:30', '15:00',
+      '15:30', '16:00', '16:30', '17:00',
+      '17:30', '18:00', '18:30', '19:00',
+      '19:30'
+    ]
+    // Cria uma consulta de grupo de coleção para buscar em todas as coleções
+    // com o ID 'detalhesAgenda' em todo o banco de dados.
+   horarios.forEach(async (horario) => {
+    const detalhesAgendaQuery = query(collectionGroup(db, horario));
+
+// Obtém o snapshot de todos os documentos nas subcoleções 'detalhesAgenda'
+const querySnapshot = await getDocs(detalhesAgendaQuery);
+
+console.log(`Encontrados ${querySnapshot.size} documentos nas subcoleções '${horario}'.`);
+
+// Você também pode obter um array com os dados de todos os documentos:
+const todosOsDados = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+console.log('Todos os dados em formato de array:', todosOsDados);
+agendamentos.value = [...agendamentos.value, ...todosOsDados] as unknown as Agendamento[];
+
+   })
+  } catch (error) {
+    console.error("Erro ao obter dados do Firestore:", error);
+  }
+
+}
+
+const onAgendamentoRealizado = async () => {
+  filtroNome.value = ''
+  filtroData.value = ''
+  await getAtendimentos()
+}
 
 
-onMounted(() => {
+onMounted(async () => {
+  await getAtendimentos()
   onAuthStateChanged(auth, async (currentUser) => {
     if (!currentUser) return
     userAuth.value = currentUser;
   });
 });
 
-const filtroNome = ref('')
-const filtroData = ref('')
+
 </script>
 
 <template>
@@ -37,9 +82,10 @@ const filtroData = ref('')
           <input v-model="filtroData" type="date" />
         </div>
 
-        <New class="new" />
+        <New @agendamento-realizado="onAgendamentoRealizado" :auth="userAuth" class="new" />
       </div>
-      <Appointments class="appointments" :user="userInfo" :filtroNome="filtroNome" :filtroData="filtroData" />
+      <Appointments :agendamentos="agendamentos" :auth="userAuth" class="appointments" :user="userInfo"
+        :filtroNome="filtroNome" :filtroData="filtroData" />
     </template>
   </div>
 </template>

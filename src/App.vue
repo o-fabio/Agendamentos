@@ -31,10 +31,16 @@ const logout = async () => {
   router.push("/");
 };
 onMounted(() => {
-  onAuthStateChanged(auth, async (currentUser) => {
+  try {
+    onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
-      
+    
       userInfo.value = (await getDoc(doc(db, "users", currentUser.uid))).data() as IUserInfo;
+      if (!userInfo.value) {
+        console.error("Usuário não encontrado no Firestore");
+        logout();
+        return;
+      }
       user.value = currentUser;
       sessionStartTime.value = Date.now();
     } else {
@@ -42,6 +48,9 @@ onMounted(() => {
       sessionStartTime.value = null;
     }
   });
+  } catch (error) {
+    console.error("Erro ao obter dados do usuário:", error);
+  }
 });
 
 // Verifica se a sessão expirou a cada minuto
@@ -58,7 +67,7 @@ setInterval(() => {
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" :class="{ 'container-grid': user && userInfo }">
     <nav v-if="user && userInfo">
       <h1>👋 Olá, {{ userInfo.name }}</h1>
       <button @click="logout">Sair</button>
@@ -74,7 +83,10 @@ setInterval(() => {
     overflow-y: hidden;
     height: 100vh;
     display: grid;
-    grid-template-rows: 50px 1fr;
+}
+
+.container-grid {
+  grid-template-rows: 50px 1fr;
 }
 
 nav {

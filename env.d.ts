@@ -14,3 +14,15 @@ interface IUserInfo {
   estado: "",
   email: "",
   }
+
+  interface Agendamento {
+    id: number
+    paciente: string
+    doutor: string
+    especialidade: string
+    data: string
+    horario: string
+    tipo: string
+    observacoes?: string
+    status?: string
+  }

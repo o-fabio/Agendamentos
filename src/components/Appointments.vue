@@ -27,51 +27,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+
+
 
 const props = defineProps<{
   user: IUserInfo
   filtroNome: string
   filtroData: string
+  agendamentos: Agendamento[]
 }>()
 
-const agendamentos = ref([
-  {
-    id: 1,
-    paciente: 'João da Silva',
-    doutor: 'Carlos Mendes',
-    especialidade: 'Clínica Geral',
-    data: '2025-05-15',
-    horario: '14:00',
-    tipo: 'Primeira consulta',
-    observacoes: 'Paciente relatou dor constante',
-    status: 'Confirmado'
-  },
-  {
-    id: 2,
-    paciente: 'Maria Oliveira',
-    doutor: 'Carlos Mendes',
-    especialidade: 'Clínica Geral',
-    data: '2025-05-16',
-    horario: '10:30',
-    tipo: 'Retorno',
-    observacoes: '',
-    status: ''
-  },
-  {
-    id: 3,
-    paciente: 'Pedro Souza',
-    doutor: 'Carlos Mendes',
-    especialidade: 'Clínica Geral',
-    data: '2025-05-15',
-    horario: '09:00',
-    tipo: 'Primeira consulta',
-    observacoes: 'Suspeita de pressão alta',
-  }
-])
 
 const agendamentosFiltrados = computed(() => {
-  return agendamentos.value.filter((item) => {
+  return props.agendamentos.filter((item) => {
     const nomeMatch = item.paciente.toLowerCase().includes(props.filtroNome.toLowerCase())
     const dataMatch = props.filtroData ? item.data === props.filtroData : true
     return nomeMatch && dataMatch

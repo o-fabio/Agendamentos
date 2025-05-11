@@ -1,26 +1,35 @@
 <template>
- <div class="container">
-  <form class="manual-appointment-form" @submit.prevent="cadastrarAgendamento">
-    <h2>Cadastrar Agendamento Manual</h2>
+  <div class="container">
+    <form class="manual-appointment-form" @submit.prevent="cadastrarAgendamento">
+      <h2>Cadastrar Agendamento Manual</h2>
 
-    <input type="text" v-model="novoAgendamento.paciente" placeholder="Nome do Paciente" required />
-    <input type="text" v-model="novoAgendamento.doutor" placeholder="Nome do Doutor" required />
-    <input type="text" v-model="novoAgendamento.especialidade" placeholder="Especialidade" required />
+      <input type="text" v-model="novoAgendamento.paciente" placeholder="Nome do Paciente" required />
+      <select v-model="novoAgendamento.doutor" required>
+        <option disabled value="">Selecione o Doutor</option>
+        <option v-for="doutor in doutores" :key="doutor.id" :value="doutor.id">
+          {{ doutor.nome }} - {{ doutor.especialidade }}
+        </option>
+      </select>
+      <input type="date" v-model="novoAgendamento.data" required />
 
-    <input type="date" v-model="novoAgendamento.data" required />
-    <input type="time" v-model="novoAgendamento.horario" required />
+      <select v-model="novoAgendamento.horario" required>
+        <option disabled value="">Selecione o Horário</option>
+        <option v-for="horario in horarios" :key="horario" :value="horario">
+          {{ horario }}
+        </option>
+      </select>
 
-    <select v-model="novoAgendamento.tipo">
-      <option disabled value="">Tipo de Consulta</option>
-      <option value="Primeira consulta">Primeira consulta</option>
-      <option value="Retorno">Retorno</option>
-    </select>
+      <select v-model="novoAgendamento.tipo">
+        <option disabled value="">Tipo de Consulta</option>
+        <option value="Primeira consulta">Primeira consulta</option>
+        <option value="Retorno">Retorno</option>
+      </select>
 
-    <textarea v-model="novoAgendamento.observacoes" placeholder="Observações (opcional)" rows="2"></textarea>
+      <textarea v-model="novoAgendamento.observacoes" placeholder="Observações (opcional)" rows="2"></textarea>
 
-    <button type="submit">Cadastrar</button>
-  </form>
- </div>
+      <button type="submit">Cadastrar</button>
+    </form>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -30,6 +39,21 @@ import { db } from "../firebase";
 import type { User } from 'firebase/auth';
 
 const props = defineProps<{ auth: User }>()
+const emit = defineEmits(['agendamento-realizado'])
+const doutores = [
+  { id: 'joao-cardiologia', nome: 'Dr. João', especialidade: 'Cardiologia' },
+  { id: 'maria-pediatria', nome: 'Dr. Maria', especialidade: 'Pediatria' },
+  { id: 'ana-dermatologia', nome: 'Dr. Ana', especialidade: 'Dermatologia' },
+];
+
+const horarios = [
+  '08:00', '08:30', '09:00', '09:30', '10:00',
+  '10:30', '11:00', '11:30',
+  '13:30', '14:00', '14:30', '15:00',
+  '15:30', '16:00', '16:30', '17:00',
+  '17:30', '18:00', '18:30', '19:00',
+  '19:30'
+]
 
 const novoAgendamento = ref({
   paciente: '',
@@ -42,11 +66,15 @@ const novoAgendamento = ref({
 });
 
 const cadastrarAgendamento = async () => {
-  // Aqui você pode adicionar a lógica para cadastrar o agendamento
-  console.log('Novo agendamento:', novoAgendamento.value);
-  await setDoc(doc(db, "appointments", props.auth.uid), {
-    ...novoAgendamento.value,
-  });
+  const doutor = doutores.find(d => d.id === novoAgendamento.value.doutor);
+  if (doutor) {
+    novoAgendamento.value.doutor = doutor.nome;
+    novoAgendamento.value.especialidade = doutor.especialidade;
+    const agendamentoId = `${novoAgendamento.value.paciente}-${Date.now()}`;
+    await setDoc(doc(db, "appointments", doutor.id, novoAgendamento.value.horario, agendamentoId), {
+      ...novoAgendamento.value,
+    });
+  }
 
   // Limpar os campos após o cadastro
   novoAgendamento.value = {
@@ -60,6 +88,8 @@ const cadastrarAgendamento = async () => {
   };
 
   alert('Agendamento cadastrado com sucesso!');
+
+  emit('agendamento-realizado')
 };
 </script>
 

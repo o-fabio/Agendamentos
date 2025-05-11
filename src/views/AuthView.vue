@@ -17,8 +17,8 @@ const userInfo = ref({
   phone2: "",
   cep: "",
   rua: "",
-  numero: "", // Novo campo
-  complemento: "", // Novo campo
+  numero: "",
+  complemento: "",
   bairro: "",
   cidade: "",
   estado: "",
