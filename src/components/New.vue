@@ -1,11 +1,11 @@
 <template>
   <div class="container">
     <form class="manual-appointment-form" @submit.prevent="cadastrarAgendamento">
-      <h2>Cadastrar Agendamento Manual</h2>
+      <h2>Cadastrar agendamento manual</h2>
 
       <input type="text" v-model="novoAgendamento.paciente" placeholder="Nome do Paciente" required />
       <select v-model="novoAgendamento.doutor" required>
-        <option disabled value="">Selecione o Doutor</option>
+        <option disabled :value="{ id: '', nome: '', especialidade: '' }">Selecione o Doutor</option>
         <option v-for="doutor in doutores" :key="doutor.id" :value="doutor.id">
           {{ doutor.nome }} - {{ doutor.especialidade }}
         </option>
@@ -33,32 +33,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import type { User } from 'firebase/auth';
 
-const props = defineProps<{ auth: User }>()
+const props = defineProps<{ auth: User, agendamentos: Agendamento[] }>()
 const emit = defineEmits(['agendamento-realizado'])
 const doutores = [
-  { id: 'joao-cardiologia', nome: 'Dr. João', especialidade: 'Cardiologia' },
-  { id: 'maria-pediatria', nome: 'Dr. Maria', especialidade: 'Pediatria' },
-  { id: 'ana-dermatologia', nome: 'Dr. Ana', especialidade: 'Dermatologia' },
+  { id: 'caetano-belmont', nome: 'Caetano Belmont', especialidade: 'Cardiologia' },
+  { id: 'juliette-aragon', nome: 'Juliette Aragon', especialidade: 'Pediatria' },
+  { id: 'lorenzo-d-aville', nome: 'Lorenzo D\'Aville', especialidade: 'Dermatologia' },
+  { id: 'miguel-melo', nome: 'Miguel Melo', especialidade: 'Ortopedista' },
+  { id: 'roberto-machado', nome: 'Roberto Machado', especialidade: 'Oftalmologia' },
+  { id: 'sabrina-oliveira', nome: 'Sabrina Oliveira', especialidade: 'Ginecologia' },
+  { id: 'tania-souza', nome: 'Tania Souza', especialidade: 'Neurologia' },
+  { id: 'vitor-azevedo', nome: 'Vitor Azevedo', especialidade: 'Endocrinologia' },
+  { id: 'yara-costa', nome: 'Yara Costa', especialidade: 'Gastroenterologia' }
 ];
 
-const horarios = [
-  '08:00', '08:30', '09:00', '09:30', '10:00',
-  '10:30', '11:00', '11:30',
-  '13:30', '14:00', '14:30', '15:00',
-  '15:30', '16:00', '16:30', '17:00',
-  '17:30', '18:00', '18:30', '19:00',
-  '19:30'
-]
+const horarios = computed(() => {
+
+  const hours = [
+    '09:00', '09:30', '10:00',
+    '10:30', '11:00', '11:30',
+    '13:30', '14:00', '14:30', '15:00',
+    '15:30', '16:00', '16:30', '17:00',
+    '17:30', '18:00', '18:30', '19:00',
+    '19:30'
+  ]
+
+  // Filtra os horários já ocupados a depender do dia escolhido
+  const dataEscolhida = new Date(novoAgendamento.value.data);
+  const diaDaSemana = dataEscolhida.getDay();
+  const agendamentosNoDia = props.agendamentos.filter(agendamento => {
+    const dataAgendamento = new Date(agendamento.data);
+    return dataAgendamento.getDay() === diaDaSemana;
+  });
+  const horariosOcupados = agendamentosNoDia.map(agendamento => agendamento.horario);
+  return hours.filter(horario => !horariosOcupados.includes(horario));
+}
+)
 
 const novoAgendamento = ref({
   paciente: '',
-  doutor: '',
-  especialidade: '',
+  doutor: {
+    id: '',
+    nome: '',
+    especialidade: ''
+  },
   data: '',
   horario: '',
   tipo: '',
@@ -68,10 +91,9 @@ const novoAgendamento = ref({
 const cadastrarAgendamento = async () => {
   const doutor = doutores.find(d => d.id === novoAgendamento.value.doutor);
   if (doutor) {
-    novoAgendamento.value.doutor = doutor.nome;
-    novoAgendamento.value.especialidade = doutor.especialidade;
+    novoAgendamento.value.doutor = doutor;
     const agendamentoId = `${novoAgendamento.value.paciente}-${Date.now()}`;
-    await setDoc(doc(db, "appointments", doutor.id, novoAgendamento.value.horario, agendamentoId), {
+    await setDoc(doc(db, "appointments", agendamentoId), {
       ...novoAgendamento.value,
     });
   }
@@ -79,8 +101,11 @@ const cadastrarAgendamento = async () => {
   // Limpar os campos após o cadastro
   novoAgendamento.value = {
     paciente: '',
-    doutor: '',
-    especialidade: '',
+    doutor: {
+      id: '',
+      nome: '',
+      especialidade: ''
+    },
     data: '',
     horario: '',
     tipo: '',

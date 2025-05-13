@@ -9,10 +9,10 @@
               {{ agendamento.status || 'Aguardando consulta' }}
             </span>
           </span>
-          <strong>Dr(a): {{ agendamento.doutor }} - {{ agendamento.especialidade }}</strong>
+          <strong>Dr(a): {{ agendamento.doutor.nome }} - {{ agendamento.doutor.especialidade }}</strong>
         </h3>
 
-        <button @click="editarAgendamento(agendamento)">Editar</button>
+        <button @click="cancelarAgendamento(agendamento)">Deletar</button>
         <ul>
 
           <li><strong>Data:</strong> {{ agendamento.data }} - {{ agendamento.horario }}</li>
@@ -28,15 +28,17 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-
-
+import { doc, deleteDoc } from "firebase/firestore";
+import { db, type User } from "../firebase";
 
 const props = defineProps<{
+  auth: User
   user: IUserInfo
   filtroNome: string
   filtroData: string
   agendamentos: Agendamento[]
 }>()
+const emit = defineEmits(['agendamento-excluido'])
 
 
 const agendamentosFiltrados = computed(() => {
@@ -47,8 +49,23 @@ const agendamentosFiltrados = computed(() => {
   })
 })
 
-const editarAgendamento = (agendamento: any) => {
-  alert(`Editar agendamento de ${agendamento.nome}`)
+const cancelarAgendamento = async (agendamento: Agendamento) => {
+  const isToExcloi = window.confirm(`Cancelar esse agendamento?
+
+Doutor: ${agendamento.doutor.nome} | Paciente: ${agendamento.paciente}
+Data: ${agendamento.data} | Horário: ${agendamento.horario}
+Tipo: ${agendamento.tipo}
+Observações: ${agendamento.observacoes || 'Nenhuma'}
+Status: ${agendamento.status || 'Aguardando consulta'}`)
+
+  if (isToExcloi) {
+    try {
+      await deleteDoc(doc(db, "appointments", agendamento.id));
+      emit('agendamento-excluido', agendamento)
+    } catch (error) {
+      console.error("Erro ao excluir agendamento:", error);
+    }
+  }
 }
 </script>
 
@@ -106,17 +123,18 @@ const editarAgendamento = (agendamento: any) => {
 }
 
 .appointment-card button {
-  background-color: #2196f3;
+  background-color: #f32121;
   color: white;
   border: none;
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
-  height: 56px;
+  height: 32px;
+  transition: background-color 0.1s ease;
 }
 
 .appointment-card button:hover {
-  background-color: #1976d2;
+  background-color: #d21919;
 }
 
 .appointment-card ul {

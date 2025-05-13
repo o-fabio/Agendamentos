@@ -19,32 +19,13 @@ const filtroData = ref('')
 const getAtendimentos = async () => {
   agendamentos.value = []
   try {
-    // Supondo que o nome da subcoleção dentro de joao-cardilogia e ana-maria-dermatologista
-    // seja 'detalhesAgenda'. Substitua por o nome real da sua subcoleção.
-    const horarios = [
-      '08:00', '08:30', '09:00', '09:30', '10:00',
-      '10:30', '11:00', '11:30',
-      '13:30', '14:00', '14:30', '15:00',
-      '15:30', '16:00', '16:30', '17:00',
-      '17:30', '18:00', '18:30', '19:00',
-      '19:30'
-    ]
-    // Cria uma consulta de grupo de coleção para buscar em todas as coleções
-    // com o ID 'detalhesAgenda' em todo o banco de dados.
-   horarios.forEach(async (horario) => {
-    const detalhesAgendaQuery = query(collectionGroup(db, horario));
+    const todosOsDados = await getDocs(collectionGroup(db, "appointments"));
+    const todosOsDadosArray = todosOsDados.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-// Obtém o snapshot de todos os documentos nas subcoleções 'detalhesAgenda'
-const querySnapshot = await getDocs(detalhesAgendaQuery);
-
-console.log(`Encontrados ${querySnapshot.size} documentos nas subcoleções '${horario}'.`);
-
-// Você também pode obter um array com os dados de todos os documentos:
-const todosOsDados = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-console.log('Todos os dados em formato de array:', todosOsDados);
-agendamentos.value = [...agendamentos.value, ...todosOsDados] as unknown as Agendamento[];
-
-   })
+    agendamentos.value = todosOsDadosArray as unknown as Agendamento[];
   } catch (error) {
     console.error("Erro ao obter dados do Firestore:", error);
   }
@@ -56,6 +37,12 @@ const onAgendamentoRealizado = async () => {
   filtroData.value = ''
   await getAtendimentos()
 }
+
+const onAgendamentoExcluido = async (agendamento: Agendamento) => {
+  await getAtendimentos()
+  console.log('Agendamento excluído:', agendamento);
+}
+
 
 
 onMounted(async () => {
@@ -82,10 +69,10 @@ onMounted(async () => {
           <input v-model="filtroData" type="date" />
         </div>
 
-        <New @agendamento-realizado="onAgendamentoRealizado" :auth="userAuth" class="new" />
+        <New :agendamentos="agendamentos" @agendamento-realizado="onAgendamentoRealizado" :auth="userAuth" class="new" />
       </div>
       <Appointments :agendamentos="agendamentos" :auth="userAuth" class="appointments" :user="userInfo"
-        :filtroNome="filtroNome" :filtroData="filtroData" />
+        :filtroNome="filtroNome" :filtroData="filtroData" @agendamento-excluido="onAgendamentoExcluido" />
     </template>
   </div>
 </template>
@@ -97,6 +84,7 @@ onMounted(async () => {
   display: grid;
   grid-template-areas: "new appointments"
     "new appointments";
+  grid-template-columns: 1fr 1fr;
   height: 100%;
   overflow-y: auto;
   gap: 16px;

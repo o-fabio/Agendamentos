@@ -97,8 +97,8 @@ nav {
   color: white;
 }
 button {
-  background: rgb(255, 62, 62);
-  border: none;
+  border: 1px solid rgb(216, 0, 0);
+  background: rgba(216, 0, 0, 0.5);
   color: white;
   padding: 5px 10px;
   cursor: pointer;
